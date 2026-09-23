@@ -40,15 +40,15 @@
 {% if result %}
 <div class="stats-grid" style="margin-top: 1.5rem;">
     <div class="stat-card">
-        <span class="stat-value">{{ result.predicted_finish_position }}</span>
+        <span class="stat-value stat-value--accent">{{ result.predicted_finish_position }}</span>
         <span class="stat-label">Predicted finish position</span>
     </div>
     <div class="stat-card">
-        <span class="stat-value">{{ (result.dnf_probability * 100) | round(1) }}%</span>
+        <span class="stat-value stat-value--accent">{{ (result.dnf_probability * 100) | round(1) }}%</span>
         <span class="stat-label">DNF probability</span>
     </div>
     <div class="stat-card">
-        <span class="stat-value">{{ "High" if result.dnf_label else "Low" }}</span>
+        <span class="stat-value stat-value--accent">{{ "High" if result.dnf_label else "Low" }}</span>
         <span class="stat-label">DNF risk flag (threshold {{ result.dnf_threshold }})</span>
     </div>
 </div>

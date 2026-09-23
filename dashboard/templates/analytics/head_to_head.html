@@ -42,7 +42,7 @@
         const currentSelected = Number(driver2Select.value || 0);
         const candidateList = !selectedDriver1
             ? allDrivers
-            : (driverSharedRaceMap[selectedDriver1] ?? []);
+            : (driverSharedRaceMap[String(selectedDriver1)] ?? []);
 
         driver2Select.innerHTML = '<option value="">Driver 2</option>';
 
@@ -100,11 +100,11 @@
         x: ['{{ result.driver1_forename }} {{ result.driver1_surname }}', '{{ result.driver2_forename }} {{ result.driver2_surname }}'],
         y: [{{ result.driver1_ahead }}, {{ result.driver2_ahead }}],
         type: 'bar',
-        marker: { color: '#e10600' },
+        marker: { color: '#7C8590' },
     }], {
         paper_bgcolor: 'transparent',
         plot_bgcolor: 'transparent',
-        font: { color: '#e8e9ec' },
+        font: { color: '#E7E9EC', family: 'IBM Plex Mono' },
         margin: { t: 20 },
         yaxis: { title: 'Races finished ahead' },
     }, { responsive: true });
