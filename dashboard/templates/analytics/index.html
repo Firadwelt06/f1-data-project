@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<h1>Analytics</h1>
+<p class="subtitle">
+    Five queries pulled straight from the normalized schema — including a
+    window-function ranking and a recursive-CTE win-streak calculation that
+    got rewritten after an EXPLAIN pass.
+</p>
+
+<div class="link-grid">
+    <a class="link-card" href="{{ url_for('analytics.win_percentage') }}">
+        <h3>Career Win %</h3>
+        <p>Top 20 drivers by win percentage (min. 20 starts).</p>
+    </a>
+    <a class="link-card" href="{{ url_for('analytics.dominance') }}">
+        <h3>Constructor Dominance by Era</h3>
+        <p>Decade-by-decade win share, ranked with a window function.</p>
+    </a>
+    <a class="link-card" href="{{ url_for('analytics.pit_stops') }}">
+        <h3>Pit Stop Trends</h3>
+        <p>Average stop duration and frequency, season by season.</p>
+    </a>
+    <a class="link-card" href="{{ url_for('analytics.head_to_head') }}">
+        <h3>Head-to-Head</h3>
+        <p>Pick two drivers, compare finishing positions across every shared race.</p>
+    </a>
+    <a class="link-card" href="{{ url_for('analytics.win_streaks') }}">
+        <h3>Longest Win Streaks</h3>
+        <p>Recursive CTE, rewritten as a window function after an EXPLAIN pass.</p>
+    </a>
+</div>
+{% endblock %}

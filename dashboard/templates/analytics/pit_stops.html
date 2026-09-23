@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Pit Stop Trends — Analytics{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('analytics.index') }}">&larr; Analytics</a>
+<h1>Pit Stop Trends</h1>
+<p class="subtitle">
+    Average pit stop duration and stop frequency per race, by season.
+    Stops recorded at 0ms (a red-flag data artifact) are excluded.
+</p>
+
+<div id="pit-stop-chart" style="height: 420px;"></div>
+
+<table class="data-table sortable">
+    <thead>
+        <tr>
+            <th data-sort="numeric">Year</th>
+            <th data-sort="numeric">Total Stops</th>
+            <th data-sort="numeric">Avg Stops / Race</th>
+            <th data-sort="numeric">Avg Duration (s)</th>
+            <th data-sort="numeric">Fastest Stop (s)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.year }}</td>
+            <td>{{ row.total_stops }}</td>
+            <td>{{ row.avg_stops_per_race }}</td>
+            <td>{{ row.avg_stop_duration_sec }}</td>
+            <td>{{ row.fastest_stop_sec }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+    const years = {{ years | tojson }};
+    const avgDuration = {{ avg_duration | tojson }};
+    const avgStops = {{ avg_stops | tojson }};
+
+    Plotly.newPlot('pit-stop-chart', [
+        {
+            x: years,
+            y: avgDuration,
+            name: 'Avg stop duration (s)',
+            type: 'scatter',
+            mode: 'lines+markers',
+            yaxis: 'y1',
+        },
+        {
+            x: years,
+            y: avgStops,
+            name: 'Avg stops per race',
+            type: 'scatter',
+            mode: 'lines+markers',
+            yaxis: 'y2',
+        },
+    ], {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        font: { color: '#e8e9ec' },
+        margin: { t: 20, r: 60 },
+        xaxis: { title: 'Season' },
+        yaxis: { title: 'Avg duration (s)', side: 'left' },
+        yaxis2: { title: 'Avg stops / race', side: 'right', overlaying: 'y' },
+        legend: { orientation: 'h' },
+    }, { responsive: true });
+</script>
+{% endblock %}

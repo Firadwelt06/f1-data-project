@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Retrospective — Predictions{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('predictions.index') }}">&larr; Predictions</a>
+<h1>Retrospective: Predicted vs. Actual</h1>
+<p class="subtitle">
+    Pick a race. The finish-position model (Linear Regression, test MAE 2.58)
+    predicts a finishing order for every driver classified as a finisher
+    (<code>dnf = 0</code>) in that race — drivers who DNF'd that race aren't
+    shown here, since the model was never trained to predict a finish
+    position for a car that didn't finish.
+</p>
+
+<form method="get" class="h2h-form">
+    <select name="race_id">
+        <option value="">Select a race</option>
+        {% for r in races %}
+        <option value="{{ r.raceId }}" {% if selected_race_id == r.raceId %}selected{% endif %}>
+            {{ r.year }} Round {{ r.round }} — {{ r.name }}
+        </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Predict</button>
+</form>
+
+{% if error %}
+<p class="error-msg">{{ error }}</p>
+{% endif %}
+
+{% if predictions %}
+<h2 class="race-label">{{ race_label }}</h2>
+<p class="mae-line">Mean absolute error for this race: <strong>{{ mae }}</strong> positions</p>
+
+<table class="data-table sortable">
+    <thead>
+        <tr>
+            <th data-sort="text">Driver</th>
+            <th data-sort="numeric">Grid</th>
+            <th data-sort="numeric">Qualifying Pos.</th>
+            <th data-sort="numeric" data-sort-default="asc">Predicted Finish</th>
+            <th data-sort="numeric">Actual Finish</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in predictions %}
+        <tr>
+            <td>{{ row.driver_name }}</td>
+            <td>{{ row.grid }}</td>
+            <td>{{ row.qualifyingPosition }}</td>
+            <td>{{ row.predicted_finish_position }}</td>
+            <td>{{ row.actual_finish_position }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Head-to-Head — Analytics{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('analytics.index') }}">&larr; Analytics</a>
+<h1>Head-to-Head</h1>
+<p class="subtitle">Compare two drivers' finishing positions across every race they've both started.</p>
+
+<form method="get" class="h2h-form">
+    <select id="driver1_id" name="driver1_id">
+        <option value="">Driver 1</option>
+        {% for d in drivers %}
+        <option value="{{ d.driverId }}" {% if selected_driver1 == d.driverId %}selected{% endif %}>{{ d.surname }}, {{ d.forename }}</option>
+        {% endfor %}
+    </select>
+    <select id="driver2_id" name="driver2_id">
+        <option value="">Driver 2</option>
+        {% if driver1_id and driver2_candidates %}
+            {% for d in driver2_candidates %}
+            <option value="{{ d.driverId }}" {% if selected_driver2 == d.driverId %}selected{% endif %}>{{ d.surname }}, {{ d.forename }}</option>
+            {% endfor %}
+        {% elif driver1_id and not driver2_candidates %}
+            <option value="" disabled>No shared-race drivers available</option>
+        {% else %}
+            {% for d in drivers %}
+            <option value="{{ d.driverId }}" {% if selected_driver2 == d.driverId %}selected{% endif %}>{{ d.surname }}, {{ d.forename }}</option>
+            {% endfor %}
+        {% endif %}
+    </select>
+    <button type="submit">Compare</button>
+</form>
+
+<script>
+    const driverSharedRaceMap = {{ shared_race_driver_map | tojson }};
+    const allDrivers = {{ drivers | tojson }};
+    const driver1Select = document.getElementById('driver1_id');
+    const driver2Select = document.getElementById('driver2_id');
+
+    function updateDriver2Options() {
+        const selectedDriver1 = Number(driver1Select.value || 0);
+        const currentSelected = Number(driver2Select.value || 0);
+        const candidateList = !selectedDriver1
+            ? allDrivers
+            : (driverSharedRaceMap[selectedDriver1] ?? []);
+
+        driver2Select.innerHTML = '<option value="">Driver 2</option>';
+
+        if (!candidateList || candidateList.length === 0) {
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'No shared-race drivers available';
+            emptyOption.disabled = true;
+            driver2Select.appendChild(emptyOption);
+            return;
+        }
+
+        for (const driver of candidateList) {
+            const option = document.createElement('option');
+            option.value = String(driver.driverId);
+            option.textContent = `${driver.surname}, ${driver.forename}`;
+            if (Number(driver.driverId) === currentSelected) {
+                option.selected = true;
+            }
+            driver2Select.appendChild(option);
+        }
+
+        if (selectedDriver1 && currentSelected && !candidateList.some(d => Number(d.driverId) === currentSelected)) {
+            driver2Select.value = '';
+        }
+    }
+
+    driver1Select.addEventListener('change', updateDriver2Options);
+    updateDriver2Options();
+</script>
+
+{% if error %}
+<p class="error-msg">{{ error }}</p>
+{% endif %}
+
+{% if result %}
+<div id="h2h-chart" style="height: 320px;"></div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th></th>
+            <th>{{ result.driver1_forename }} {{ result.driver1_surname }}</th>
+            <th>{{ result.driver2_forename }} {{ result.driver2_surname }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>Shared races</td><td colspan="2">{{ result.shared_races }}</td></tr>
+        <tr><td>Finished ahead</td><td>{{ result.driver1_ahead }}</td><td>{{ result.driver2_ahead }}</td></tr>
+    </tbody>
+</table>
+
+<script>
+    Plotly.newPlot('h2h-chart', [{
+        x: ['{{ result.driver1_forename }} {{ result.driver1_surname }}', '{{ result.driver2_forename }} {{ result.driver2_surname }}'],
+        y: [{{ result.driver1_ahead }}, {{ result.driver2_ahead }}],
+        type: 'bar',
+        marker: { color: '#e10600' },
+    }], {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        font: { color: '#e8e9ec' },
+        margin: { t: 20 },
+        yaxis: { title: 'Races finished ahead' },
+    }, { responsive: true });
+</script>
+{% endif %}
+{% endblock %}

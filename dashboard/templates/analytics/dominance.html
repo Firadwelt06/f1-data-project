@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Constructor Dominance — Analytics{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('analytics.index') }}">&larr; Analytics</a>
+<h1>Constructor Dominance by Era</h1>
+<p class="subtitle">
+    Ranked by win share within each decade using RANK() OVER (PARTITION BY decade ...).
+    Minimum 10 races entered by that constructor in that decade.
+</p>
+
+<div class="filter-row">
+    <label for="decade-filter">Decade:</label>
+    <select id="decade-filter">
+        <option value="all">All decades</option>
+        {% for d in decades %}
+        <option value="{{ d }}">{{ d }}s</option>
+        {% endfor %}
+    </select>
+</div>
+
+<table class="data-table sortable" id="dominance-table">
+    <thead>
+        <tr>
+            <th data-sort="numeric">Decade</th>
+            <th data-sort="text">Constructor</th>
+            <th data-sort="numeric">Races</th>
+            <th data-sort="numeric">Wins</th>
+            <th data-sort="numeric">Win %</th>
+            <th data-sort="numeric">Points</th>
+            <th data-sort="numeric">Rank</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr data-decade="{{ row.decade }}">
+            <td>{{ row.decade }}s</td>
+            <td>{{ row.name }}</td>
+            <td>{{ row.races_entered }}</td>
+            <td>{{ row.wins }}</td>
+            <td>{{ row.win_pct_in_decade }}%</td>
+            <td>{{ row.total_points }}</td>
+            <td>{{ row.dominance_rank }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

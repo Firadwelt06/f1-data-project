@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Career Win % — Analytics{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('analytics.index') }}">&larr; Analytics</a>
+<h1>Career Win %</h1>
+<p class="subtitle">Top 20 drivers by win percentage. Minimum 20 starts, to filter out one-off/reserve appearances.</p>
+
+<table class="data-table sortable">
+    <thead>
+        <tr>
+            <th data-sort="text">Driver</th>
+            <th data-sort="numeric">Starts</th>
+            <th data-sort="numeric">Wins</th>
+            <th data-sort="numeric" data-sort-default="desc">Win %</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.forename }} {{ row.surname }}</td>
+            <td>{{ row.starts }}</td>
+            <td>{{ row.wins }}</td>
+            <td>{{ row.win_pct }}%</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

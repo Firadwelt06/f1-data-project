@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}DNF Risk — Predictions{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('predictions.index') }}">&larr; Predictions</a>
+<h1>DNF Risk</h1>
+<p class="subtitle">
+    Pick a race. The DNF classifier (Random Forest, decision threshold {{ threshold }})
+    scores every entrant — unlike the finish-position view, this includes
+    drivers who actually did DNF, since predicting that outcome is the whole
+    point of this model. Precision is deliberately traded for recall here:
+    at this threshold the model over-flags risk in exchange for catching
+    more real DNFs (test recall ~0.78, precision ~0.17).
+</p>
+
+<form method="get" class="h2h-form">
+    <select name="race_id">
+        <option value="">Select a race</option>
+        {% for r in races %}
+        <option value="{{ r.raceId }}" {% if selected_race_id == r.raceId %}selected{% endif %}>
+            {{ r.year }} Round {{ r.round }} — {{ r.name }}
+        </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Predict</button>
+</form>
+
+{% if error %}
+<p class="error-msg">{{ error }}</p>
+{% endif %}
+
+{% if predictions %}
+<h2 class="race-label">{{ race_label }}</h2>
+
+<table class="data-table sortable">
+    <thead>
+        <tr>
+            <th data-sort="text">Driver</th>
+            <th data-sort="numeric">Grid</th>
+            <th data-sort="numeric" data-sort-default="desc">DNF Probability</th>
+            <th data-sort="text">Flagged High-Risk</th>
+            <th data-sort="text">Actually DNF'd</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in predictions %}
+        <tr>
+            <td>{{ row.driver_name }}</td>
+            <td>{{ row.grid }}</td>
+            <td>{{ (row.predicted_dnf_probability * 100) | round(1) }}%</td>
+            <td>{{ "Yes" if row.predicted_dnf_label else "No" }}</td>
+            <td>{{ "Yes" if row.actual_dnf else "No" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

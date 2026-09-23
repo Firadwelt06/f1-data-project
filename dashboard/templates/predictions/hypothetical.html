@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Hypothetical — Predictions{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('predictions.index') }}">&larr; Predictions</a>
+<h1>Hypothetical</h1>
+<p class="subtitle">
+    Pick a real driver and a real constructor (not necessarily their actual
+    current team) and a qualifying position, and both models run against
+    that scenario. Every other feature — rolling form, prior wins, age —
+    comes from the driver's most recent known race, and constructor form
+    comes from that constructor's most recent known race. This is "this
+    driver, in their current form, starting from a different grid slot (and
+    maybe a different team)" — not a fully synthetic driver.
+</p>
+
+<form method="post" class="h2h-form">
+    <select name="driver_id">
+        <option value="">Driver</option>
+        {% for d in drivers %}
+        <option value="{{ d.driverId }}" {% if form.driver_id == d.driverId %}selected{% endif %}>{{ d.surname }}, {{ d.forename }}</option>
+        {% endfor %}
+    </select>
+    <select name="constructor_id">
+        <option value="">Constructor</option>
+        {% for c in constructors %}
+        <option value="{{ c.constructorId }}" {% if form.constructor_id == c.constructorId %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+    </select>
+    <input type="number" name="qualifying_position" min="1" max="24" placeholder="Qualifying pos."
+           value="{{ form.qualifying_position or '' }}">
+    <button type="submit">Predict</button>
+</form>
+
+{% if error %}
+<p class="error-msg">{{ error }}</p>
+{% endif %}
+
+{% if result %}
+<div class="stats-grid" style="margin-top: 1.5rem;">
+    <div class="stat-card">
+        <span class="stat-value">{{ result.predicted_finish_position }}</span>
+        <span class="stat-label">Predicted finish position</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ (result.dnf_probability * 100) | round(1) }}%</span>
+        <span class="stat-label">DNF probability</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ "High" if result.dnf_label else "Low" }}</span>
+        <span class="stat-label">DNF risk flag (threshold {{ result.dnf_threshold }})</span>
+    </div>
+</div>
+<p class="mae-line">
+    {{ result.driver_label }} at {{ result.constructor_label }}, qualifying P{{ result.qualifying_position }}
+    — baseline stats as of their most recent race ({{ result.baseline_year }}). The finish-position
+    number assumes the DNF doesn't happen — the two predictions are independent, not gated on each other.
+</p>
+{% endif %}
+{% endblock %}

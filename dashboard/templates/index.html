@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}F1 Data Engineering Portfolio{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Formula 1: Database, Pipeline &amp; ML Portfolio</h1>
+    <p class="subtitle">
+        A normalized MySQL schema, an orchestrated ETL pipeline, encrypted
+        backups, and two trained models — DNF risk and finishing position —
+        built end to end on 76 years of F1 data.
+    </p>
+</section>
+
+<section class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.race_count }}</span>
+        <span class="stat-label">Races</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.driver_count }}</span>
+        <span class="stat-label">Drivers</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.constructor_count }}</span>
+        <span class="stat-label">Constructors</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.first_year }}&ndash;{{ stats.last_year }}</span>
+        <span class="stat-label">Seasons covered</span>
+    </div>
+</section>
+
+<section class="story">
+    <h2>What's under the hood</h2>
+    <ul>
+        <li>3NF relational schema, deliberately indexed, plus a purpose-built analytics table feeding the ML layer</li>
+        <li>Dagster-orchestrated pipeline with repeatable, observable runs</li>
+        <li>AES-256-CBC + HMAC-SHA256 encrypted backups with a tested restore drill</li>
+        <li>Two decoupled models: a DNF-risk classifier and a finishing-position regressor</li>
+    </ul>
+    <p class="coming-soon">Analytics and live predictions are coming to this dashboard next.</p>
+</section>
+{% endblock %}

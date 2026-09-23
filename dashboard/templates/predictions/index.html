@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Predictions{% endblock %}
+
+{% block content %}
+<h1>Predictions</h1>
+<p class="subtitle">
+    Live inference from the versioned Stage 5 models, run against
+    <code>analytics_driver_race</code>.
+</p>
+
+<div class="link-grid">
+    <a class="link-card" href="{{ url_for('predictions.retrospective') }}">
+        <h3>Retrospective</h3>
+        <p>Pick a past race, compare the finish-position model's prediction against what actually happened.</p>
+    </a>
+    <a class="link-card" href="{{ url_for('predictions.dnf_risk') }}">
+        <h3>DNF Risk</h3>
+        <p>Pick a past race, see the classifier's risk score for every entrant at the 0.15 decision threshold.</p>
+    </a>
+    <a class="link-card" href="{{ url_for('predictions.hypothetical') }}">
+        <h3>Hypothetical</h3>
+        <p>Pick a driver and constructor, adjust qualifying position, see both models' predictions.</p>
+    </a>
+</div>
+{% endblock %}
