@@ -1,0 +1,22 @@
+.venv/
+.env
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Local runtime / generated data
+backups/
+dagster_home/
+ml/models/*.pkl
+ml/models/*.csv
+
+# Local scratch/debug artifacts
+etl_debug.txt
+run_after_*.txt
+tmp_check.py
+
+# Raw dataset is intentionally tracked
+# data/*.csv is intentionally NOT ignored

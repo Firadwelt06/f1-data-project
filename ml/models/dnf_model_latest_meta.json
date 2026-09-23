@@ -1,0 +1,55 @@
+{
+  "trained_at": "20260916_075258",
+  "model_type": "RandomForestClassifier",
+  "hyperparameters": {
+    "n_estimators": 200,
+    "class_weight": "balanced",
+    "random_state": 42
+  },
+  "decision_threshold": 0.15,
+  "feature_columns": [
+    "grid",
+    "qualifyingPosition",
+    "driverAgeAtRaceDays",
+    "priorRaceCount",
+    "rollingAvgPoints_last5",
+    "rollingAvgFinishPos_last5",
+    "constructorRollingAvgPoints_last5",
+    "priorWins",
+    "priorWinPct",
+    "constructorWinPct_last10",
+    "priorWinStreak",
+    "is_rookie_driver",
+    "is_new_constructor",
+    "era_1981_2005",
+    "era_2006_2013_v8",
+    "era_2014_2021_hybrid",
+    "era_2022_plus_ground_effect"
+  ],
+  "train_years": [
+    1950,
+    2024
+  ],
+  "test_years": [
+    2025,
+    2026
+  ],
+  "train_dnf_rate": 0.40767961601919905,
+  "test_dnf_rate": 0.14285714285714285,
+  "test_metrics": {
+    "accuracy": 0.4160887656033287,
+    "roc_auc": 0.5855798535834355,
+    "precision": 0.16736401673640167,
+    "recall": 0.7766990291262136
+  },
+  "baseline_comparison": {
+    "model_type": "LogisticRegression",
+    "threshold": 0.1,
+    "test_metrics": {
+      "accuracy": 0.2635228848821082,
+      "roc_auc": 0.5418983881609953,
+      "precision": 0.1525974025974026,
+      "recall": 0.912621359223301
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "trained_at": "20260917_101232",
+  "model_type": "LinearRegression",
+  "requires_scaling": true,
+  "hyperparameters": {},
+  "feature_columns": [
+    "grid",
+    "qualifyingPosition",
+    "driverAgeAtRaceDays",
+    "priorRaceCount",
+    "rollingAvgPoints_last5",
+    "rollingAvgFinishPos_last5",
+    "constructorRollingAvgPoints_last5",
+    "priorWins",
+    "priorWinPct",
+    "constructorWinPct_last10",
+    "priorWinStreak",
+    "is_rookie_driver",
+    "is_new_constructor",
+    "era_1981_2005",
+    "era_2006_2013_v8",
+    "era_2014_2021_hybrid",
+    "era_2022_plus_ground_effect"
+  ],
+  "train_years": [
+    1950,
+    2024
+  ],
+  "test_years": [
+    2025,
+    2026
+  ],
+  "train_rows": 15796,
+  "test_rows": 618,
+  "filtered_to_dnf_zero": true,
+  "test_metrics": {
+    "mae": 2.583538417788766,
+    "rmse": 3.337789388930759,
+    "r2": 0.59098112502208
+  },
+  "comparison": {
+    "linear_regression": {
+      "mae": 2.583538417788766,
+      "rmse": 3.337789388930759,
+      "r2": 0.59098112502208
+    },
+    "random_forest_regressor": {
+      "mae": 2.59,
+      "rmse": 3.3966112466935408,
+      "r2": 0.5764378178666592
+    }
+  }
+}
