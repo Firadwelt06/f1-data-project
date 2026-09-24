@@ -2,3 +2,4 @@ flask
 sqlalchemy
 pymysql
 python-dotenv
+gunicorn

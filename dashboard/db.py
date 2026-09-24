@@ -3,25 +3,28 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 from config import Config
 
-# pool_pre_ping: issues a cheap "SELECT 1" before handing out a pooled
-# connection, and transparently reconnects if it's gone stale. Worth having
-# specifically because this is a long-lived local dev MySQL instance on
-# Windows that can drop idle connections between dashboard requests.
-# pool_recycle: proactively recycles connections older than this many
-# seconds, as a second line of defense against the same problem.
+connect_args = {}
+if Config.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
+    # SQLite forbids using a connection from a thread other than the one
+    # that created it, by default. Flask serves each request on its own
+    # thread, so without this, every request after the first would raise
+    # "SQLite objects created in a thread can only be used in that same
+    # thread." Safe to disable here specifically because this file is a
+    # read-only snapshot — there's no concurrent-write hazard to guard
+    # against, which is the actual reason that check exists.
+    connect_args = {"check_same_thread": False}
+
+# pool_pre_ping / pool_recycle matter for the MySQL path (guards against a
+# long-lived local dev DB dropping idle connections); they're harmless
+# no-ops for SQLite, so this stays a single engine-creation call rather
+# than branching per backend.
 engine = create_engine(
     Config.SQLALCHEMY_DATABASE_URI,
     pool_pre_ping=True,
     pool_recycle=3600,
+    connect_args=connect_args,
 )
 
-# scoped_session gives each request thread its own Session transparently.
-# Flask serves each request on its own thread (in the dev server and most
-# WSGI servers), so a single shared Session object would let one request's
-# in-progress transaction bleed into another's. scoped_session keys the
-# session by thread, and SessionLocal.remove() in the teardown hook below
-# clears it at the end of each request so connections go back to the pool
-# instead of leaking.
 SessionLocal = scoped_session(
     sessionmaker(bind=engine, autoflush=False, autocommit=False)
 )

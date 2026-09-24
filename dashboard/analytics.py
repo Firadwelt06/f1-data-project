@@ -104,7 +104,7 @@ def dominance():
             """
             WITH decade_stats AS (
                 SELECT
-                    (r.year DIV 10) * 10 AS decade,
+                    (r.year - r.year % 10) AS decade,
                     c.constructorId,
                     c.name,
                     COUNT(*) AS races_entered,
