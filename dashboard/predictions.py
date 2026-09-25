@@ -15,6 +15,14 @@ predictions_bp = Blueprint("predictions", __name__, url_prefix="/predictions")
 DEFAULT_THRESHOLD_FALLBACK = 0.15
 
 
+def _meta_int(meta, key, default):
+    value = meta.get(key)
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def _prediction_metadata(session):
     rows = session.execute(text("SELECT meta_key, meta_value FROM prediction_metadata")).mappings().all()
     return {r["meta_key"]: r["meta_value"] for r in rows}
@@ -172,9 +180,9 @@ def hypothetical():
     ).mappings().all()
 
     meta = _prediction_metadata(session)
-    dnf_cutoff_year = int(meta.get("dnf_grid_cutoff_year", 0))
-    grid_min = int(meta.get("finish_grid_min", 0))
-    grid_max = int(meta.get("finish_grid_max", 34))
+    dnf_cutoff_year = _meta_int(meta, "dnf_grid_cutoff_year", 0)
+    grid_min = _meta_int(meta, "finish_grid_min", 0)
+    grid_max = _meta_int(meta, "finish_grid_max", 34)
 
     dnf_eligible_driver_ids = {
         r["driverId"] for r in session.execute(text("SELECT DISTINCT driverId FROM dnf_hypothetical_grid")).mappings().all()
@@ -200,63 +208,79 @@ def hypothetical():
         if not (driver_id and constructor_id and qualifying_position is not None):
             error = "Pick a driver, a constructor, and a qualifying position."
         else:
-            driver_contrib = session.execute(
-                text("SELECT contribution FROM finish_contrib_driver WHERE driverId = :d"),
-                {"d": driver_id},
-            ).scalar()
-            constructor_contrib = session.execute(
-                text("SELECT contribution FROM finish_contrib_constructor WHERE constructorId = :c"),
-                {"c": constructor_id},
-            ).scalar()
-            grid_contrib = session.execute(
-                text("SELECT contribution FROM finish_contrib_grid WHERE qualifying_position = :g"),
-                {"g": qualifying_position},
-            ).scalar()
-
-            if driver_contrib is None:
-                error = "No historical data for this driver yet — can't build a feature baseline."
-            elif constructor_contrib is None:
-                error = "No historical data for this constructor yet — can't build a feature baseline."
-            elif grid_contrib is None:
-                error = f"Qualifying position must be between {grid_min} and {grid_max}."
+            finish_base_raw = meta.get("finish_base")
+            if finish_base_raw is None:
+                error = (
+                    "Prediction data isn’t available for the hypothetical model on this deployment. "
+                    "Rebuild the precomputed prediction snapshot and redeploy."
+                )
             else:
-                base = float(meta["finish_base"])
-                predicted_finish = round(base + driver_contrib + constructor_contrib + grid_contrib, 2)
+                try:
+                    base = float(finish_base_raw)
+                except (TypeError, ValueError):
+                    error = (
+                        "The prediction baseline is invalid on this deployment. "
+                        "Rebuild the precomputed prediction snapshot and redeploy."
+                    )
+                    base = None
 
-                dnf_row = None
-                if driver_id in dnf_eligible_driver_ids and constructor_id in dnf_eligible_constructor_ids:
-                    dnf_row = session.execute(
-                        text(
-                            """
-                            SELECT predicted_dnf_probability, predicted_dnf_label
-                            FROM dnf_hypothetical_grid
-                            WHERE driverId = :d AND constructorId = :c AND qualifying_position = :g
-                            """
-                        ),
-                        {"d": driver_id, "c": constructor_id, "g": qualifying_position},
-                    ).mappings().first()
+                if base is not None:
+                    driver_contrib = session.execute(
+                        text("SELECT contribution FROM finish_contrib_driver WHERE driverId = :d"),
+                        {"d": driver_id},
+                    ).scalar()
+                    constructor_contrib = session.execute(
+                        text("SELECT contribution FROM finish_contrib_constructor WHERE constructorId = :c"),
+                        {"c": constructor_id},
+                    ).scalar()
+                    grid_contrib = session.execute(
+                        text("SELECT contribution FROM finish_contrib_grid WHERE qualifying_position = :g"),
+                        {"g": qualifying_position},
+                    ).scalar()
 
-                driver_label = next(
-                    (f"{d['forename']} {d['surname']}" for d in drivers if d["driverId"] == driver_id), "Driver"
-                )
-                constructor_label = next(
-                    (c["name"] for c in constructors if c["constructorId"] == constructor_id), "Constructor"
-                )
+                    if driver_contrib is None:
+                        error = "No historical data for this driver yet — can't build a feature baseline."
+                    elif constructor_contrib is None:
+                        error = "No historical data for this constructor yet — can't build a feature baseline."
+                    elif grid_contrib is None:
+                        error = f"Qualifying position must be between {grid_min} and {grid_max}."
+                    else:
+                        predicted_finish = round(base + driver_contrib + constructor_contrib + grid_contrib, 2)
 
-                result = {
-                    "driver_label": driver_label,
-                    "constructor_label": constructor_label,
-                    "qualifying_position": qualifying_position,
-                    "predicted_finish_position": predicted_finish,
-                    "dnf_probability": dnf_row["predicted_dnf_probability"] if dnf_row else None,
-                    "dnf_label": bool(dnf_row["predicted_dnf_label"]) if dnf_row else None,
-                    "dnf_unavailable_reason": None if dnf_row else (
-                        f"DNF-risk isn't precomputed for this combination — only available for drivers "
-                        f"and constructors active since {dnf_cutoff_year}."
-                    ),
-                    "dnf_threshold": float(meta.get("dnf_threshold", DEFAULT_THRESHOLD_FALLBACK)),
-                    "baseline_year": meta.get("finish_max_year_used"),
-                }
+                        dnf_row = None
+                        if driver_id in dnf_eligible_driver_ids and constructor_id in dnf_eligible_constructor_ids:
+                            dnf_row = session.execute(
+                                text(
+                                    """
+                                    SELECT predicted_dnf_probability, predicted_dnf_label
+                                    FROM dnf_hypothetical_grid
+                                    WHERE driverId = :d AND constructorId = :c AND qualifying_position = :g
+                                    """
+                                ),
+                                {"d": driver_id, "c": constructor_id, "g": qualifying_position},
+                            ).mappings().first()
+
+                        driver_label = next(
+                            (f"{d['forename']} {d['surname']}" for d in drivers if d["driverId"] == driver_id), "Driver"
+                        )
+                        constructor_label = next(
+                            (c["name"] for c in constructors if c["constructorId"] == constructor_id), "Constructor"
+                        )
+
+                        result = {
+                            "driver_label": driver_label,
+                            "constructor_label": constructor_label,
+                            "qualifying_position": qualifying_position,
+                            "predicted_finish_position": predicted_finish,
+                            "dnf_probability": dnf_row["predicted_dnf_probability"] if dnf_row else None,
+                            "dnf_label": bool(dnf_row["predicted_dnf_label"]) if dnf_row else None,
+                            "dnf_unavailable_reason": None if dnf_row else (
+                                f"DNF-risk isn't precomputed for this combination — only available for drivers "
+                                f"and constructors active since {dnf_cutoff_year}."
+                            ),
+                            "dnf_threshold": float(meta.get("dnf_threshold", DEFAULT_THRESHOLD_FALLBACK)),
+                            "baseline_year": meta.get("finish_max_year_used"),
+                        }
 
     return render_template(
         "predictions/hypothetical.html",
