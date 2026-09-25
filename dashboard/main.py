@@ -1,7 +1,10 @@
 from flask import Blueprint, render_template
 from sqlalchemy import text
 
-from db import get_session
+try:
+    from .db import get_session
+except ImportError:  # pragma: no cover - supports local script execution
+    from db import get_session
 
 main_bp = Blueprint("main", __name__)
 

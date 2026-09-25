@@ -1,7 +1,10 @@
 from flask import Blueprint, render_template, request
 from sqlalchemy import text
 
-from db import get_session
+try:
+    from .db import get_session
+except ImportError:  # pragma: no cover - supports local script execution
+    from db import get_session
 
 
 def get_shared_race_driver_candidates(session, driver1_id):

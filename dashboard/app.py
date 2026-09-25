@@ -1,10 +1,17 @@
 from flask import Flask
 
-from analytics import analytics_bp
-from config import Config
-from db import close_session
-from main import main_bp
-from predictions import predictions_bp
+try:
+    from .analytics import analytics_bp
+    from .config import Config
+    from .db import close_session
+    from .main import main_bp
+    from .predictions import predictions_bp
+except ImportError:  # pragma: no cover - supports local script execution
+    from analytics import analytics_bp
+    from config import Config
+    from db import close_session
+    from main import main_bp
+    from predictions import predictions_bp
 
 
 def create_app():

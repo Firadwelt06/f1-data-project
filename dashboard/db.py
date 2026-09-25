@@ -1,7 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from config import Config
+try:
+    from .config import Config
+except ImportError:  # pragma: no cover - supports local script execution
+    from config import Config
 
 connect_args = {}
 if Config.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
