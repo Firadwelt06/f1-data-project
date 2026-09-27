@@ -28,7 +28,7 @@
         <option value="{{ c.constructorId }}" {% if form.constructor_id == c.constructorId %}selected{% endif %}>{{ c.name }}</option>
         {% endfor %}
     </select>
-    <input type="number" name="qualifying_position" min="1" max="24" placeholder="Qualifying pos."
+    <input type="number" name="qualifying_position" min="{{ grid_min }}" max="{{ grid_max }}" placeholder="Qualifying pos."
            value="{{ form.qualifying_position or '' }}">
     <button type="submit">Predict</button>
 </form>

@@ -79,9 +79,11 @@ def win_percentage():
                 d.forename,
                 d.surname,
                 COUNT(*) AS starts,
-                SUM(CASE WHEN r.position = '1' THEN 1 ELSE 0 END) AS wins,
+                SUM(CASE WHEN CAST(r.position AS REAL) = 1 THEN 1 ELSE 0 END) AS wins,
                 ROUND(
-                    SUM(CASE WHEN r.position = '1' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2
+                    SUM(CASE WHEN CAST(r.position AS REAL) = 1 THEN 1.0 ELSE 0.0 END)
+                    / COUNT(*) * 100.0,
+                    2
                 ) AS win_pct
             FROM results r
             JOIN drivers d ON d.driverId = r.driverId
@@ -111,9 +113,10 @@ def dominance():
                     c.constructorId,
                     c.name,
                     COUNT(*) AS races_entered,
-                    SUM(CASE WHEN res.position = '1' THEN 1 ELSE 0 END) AS wins,
+                    SUM(CASE WHEN CAST(res.position AS REAL) = 1 THEN 1 ELSE 0 END) AS wins,
                     ROUND(
-                        SUM(CASE WHEN res.position = '1' THEN 1 ELSE 0 END) / COUNT(*) * 100,
+                        SUM(CASE WHEN CAST(res.position AS REAL) = 1 THEN 1.0 ELSE 0.0 END)
+                        / COUNT(*) * 100.0,
                         2
                     ) AS win_pct_in_decade,
                     SUM(res.points) AS total_points

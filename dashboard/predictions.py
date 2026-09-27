@@ -290,4 +290,6 @@ def hypothetical():
         error=error,
         form=form,
         dnf_cutoff_year=dnf_cutoff_year,
+        grid_min=grid_min,
+        grid_max=grid_max,
     )

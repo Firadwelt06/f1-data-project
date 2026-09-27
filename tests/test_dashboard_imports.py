@@ -1,6 +1,9 @@
 import importlib
+import inspect
 import unittest
 from unittest.mock import Mock, patch
+
+from dashboard import analytics
 
 
 class DashboardImportTests(unittest.TestCase):
@@ -37,6 +40,12 @@ class DashboardImportTests(unittest.TestCase):
 
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Prediction data isn’t available", resp.get_data(as_text=True))
+
+    def test_career_win_percentage_uses_decimal_division(self):
+        source = inspect.getsource(analytics.win_percentage)
+
+        self.assertIn("CAST(r.position AS REAL)", source)
+        self.assertIn("100.0", source)
 
 
 if __name__ == "__main__":
