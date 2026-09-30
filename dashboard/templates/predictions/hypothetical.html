@@ -44,12 +44,12 @@
         <span class="stat-label">Predicted finish position</span>
     </div>
     <div class="stat-card">
-        <span class="stat-value stat-value--accent">{{ (result.dnf_probability * 100) | round(1) }}%</span>
+        <span class="stat-value stat-value--accent">{% if result.dnf_probability is not none %}{{ (result.dnf_probability * 100) | round(1) }}%{% else %}Unavailable{% endif %}</span>
         <span class="stat-label">DNF probability</span>
     </div>
     <div class="stat-card">
-        <span class="stat-value stat-value--accent">{{ "High" if result.dnf_label else "Low" }}</span>
-        <span class="stat-label">DNF risk flag (threshold {{ result.dnf_threshold }})</span>
+        <span class="stat-value stat-value--accent">{% if result.dnf_label is not none %}{{ "High" if result.dnf_label else "Low" }}{% else %}Unavailable{% endif %}</span>
+        <span class="stat-label">{% if result.dnf_label is not none %}DNF risk flag (threshold {{ result.dnf_threshold }}){% else %}DNF risk flag{% endif %}</span>
     </div>
 </div>
 <p class="mae-line">
@@ -57,5 +57,8 @@
     — baseline stats as of their most recent race ({{ result.baseline_year }}). The finish-position
     number assumes the DNF doesn't happen — the two predictions are independent, not gated on each other.
 </p>
+{% if result.dnf_unavailable_reason %}
+<p class="mae-line">{{ result.dnf_unavailable_reason }}</p>
+{% endif %}
 {% endif %}
 {% endblock %}

@@ -41,6 +41,36 @@ class DashboardImportTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Prediction data isn’t available", resp.get_data(as_text=True))
 
+    def test_hypothetical_route_handles_missing_dnf_prediction(self):
+        from dashboard.app import create_app
+
+        session = Mock()
+        session.execute.side_effect = [
+            Mock(mappings=Mock(return_value=Mock(all=Mock(return_value=[{"driverId": 1, "forename": "Lewis", "surname": "Hamilton"}])))),
+            Mock(mappings=Mock(return_value=Mock(all=Mock(return_value=[{"constructorId": 1, "name": "Mercedes"}])))),
+            Mock(mappings=Mock(return_value=Mock(all=Mock(return_value=[])))),
+            Mock(mappings=Mock(return_value=Mock(all=Mock(return_value=[])))),
+            Mock(scalar=Mock(return_value=1.23)),
+            Mock(scalar=Mock(return_value=2.34)),
+            Mock(scalar=Mock(return_value=3.45)),
+        ]
+
+        app = create_app()
+        app.config["TESTING"] = True
+
+        with patch("dashboard.predictions.get_session", return_value=session), patch(
+            "dashboard.predictions._prediction_metadata", return_value={"finish_base": "1.0"}
+        ):
+            with app.test_client() as client:
+                resp = client.post(
+                    "/predictions/hypothetical",
+                    data={"driver_id": 1, "constructor_id": 1, "qualifying_position": 5},
+                )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Unavailable", resp.get_data(as_text=True))
+        self.assertIn("precomputed for this combination", resp.get_data(as_text=True))
+
     def test_career_win_percentage_uses_decimal_division(self):
         source = inspect.getsource(analytics.win_percentage)
 
